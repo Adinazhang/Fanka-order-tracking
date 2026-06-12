@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fanka Order Tracking</title>
+  <style>
+    :root {
+      --figma-page: url("figma设计页面/查询首页.png");
+      --pink: #dc3d70;
+      --black: #050505;
+      --text: #171717;
+      --muted: #5c5c5c;
+      --quiet: #8a8a8a;
+      --soft: #f6f6f6;
+      --line: #dedede;
+      --hero: #e8e9eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #fff;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .sr-only,
+    .footer-content {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    .hero {
+      position: relative;
+      height: 426px;
+      overflow: hidden;
+      background: var(--hero) var(--figma-page) center top / 1920px 1080px no-repeat;
+    }
+
+    .hero-brand-hit {
+      position: absolute;
+      top: 38px;
+      left: calc(50% - 892px);
+      width: 96px;
+      height: 36px;
+      border-radius: 3px;
+      outline-offset: 6px;
+    }
+
+    .hero-mobile-brand {
+      display: none;
+    }
+
+    .hero-controls {
+      position: absolute;
+      top: 206px;
+      left: calc(50% - 365px);
+      width: 731px;
+    }
+
+    .search-form {
+      display: grid;
+      grid-template-columns: 498px 200px;
+      gap: 33px;
+      align-items: start;
+    }
+
+    .search-field {
+      position: relative;
+      min-width: 0;
+    }
+
+    .search-field input,
+    .track-button {
+      width: 100%;
+      height: 60px;
+      border: 0;
+      border-radius: 6px;
+      outline-offset: 4px;
+    }
+
+    .search-field input {
+      padding: 0 24px;
+      color: #222;
+      caret-color: #222;
+      background: #fff;
+      font-size: 20px;
+    }
+
+    .track-button {
+      color: #fff;
+      background: #000;
+      font-size: 20px;
+    }
+
+    .form-error {
+      display: none;
+      position: absolute;
+      top: 74px;
+      left: 0;
+      color: #c52d5d;
+      font-size: 14px;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+
+    .form-error.is-visible {
+      display: block;
+    }
+
+    .results-shell {
+      background: #fff;
+    }
+
+    .empty-state {
+      display: flex;
+      height: 386px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #bebebe;
+      text-align: center;
+    }
+
+    .empty-icon {
+      position: relative;
+      width: 142px;
+      height: 142px;
+      margin-bottom: 10px;
+    }
+
+    .empty-icon::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      left: 24px;
+      width: 78px;
+      height: 78px;
+      border: 17px solid #ececec;
+      border-radius: 50%;
+    }
+
+    .empty-icon::after {
+      content: "";
+      position: absolute;
+      top: 100px;
+      left: 99px;
+      width: 72px;
+      height: 18px;
+      border-radius: 12px;
+      background: #ececec;
+      transform: rotate(45deg);
+      transform-origin: left center;
+    }
+
+    .empty-shadow {
+      width: 128px;
+      height: 8px;
+      margin: -8px 0 28px;
+      border-radius: 50%;
+      background: #e6e6e6;
+      filter: blur(1px);
+    }
+
+    .empty-state p {
+      margin: 0;
+      color: #bdbdbd;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .orders {
+      width: min(1440px, calc(100% - 80px));
+      margin: 35px auto 112px;
+    }
+
+    .order-card {
+      margin-bottom: 26px;
+    }
+
+    .order-summary {
+      width: 100%;
+      min-height: 110px;
+      border: 0;
+      border-radius: 8px;
+      padding: 18px 32px 18px;
+      color: var(--text);
+      background: #f5f5f5;
+      text-align: left;
+    }
+
+    .summary-top {
+      display: grid;
+      grid-template-columns: 24px 28px minmax(320px, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .chevron {
+      position: relative;
+      display: block;
+      width: 18px;
+      height: 18px;
+    }
+
+    .chevron::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 3px;
+      width: 9px;
+      height: 9px;
+      border-right: 3px solid #111;
+      border-bottom: 3px solid #111;
+      transform: rotate(45deg);
+    }
+
+    .order-card.is-open .chevron::before {
+      top: 8px;
+      transform: rotate(225deg);
+    }
+
+    .badge {
+      display: inline-flex;
+      width: 28px;
+      height: 28px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--pink);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .order-title {
+      min-width: 0;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .order-total {
+      justify-self: end;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .order-meta {
+      display: grid;
+      grid-template-columns: minmax(500px, 1fr) 180px 120px;
+      gap: 45px;
+      padding-left: 102px;
+      color: #555;
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .order-details {
+      display: none;
+      padding: 24px 24px 0 24px;
+    }
+
+    .order-card.is-open .order-details {
+      display: block;
+    }
+
+    .package-block {
+      margin-bottom: 24px;
+    }
+
+    .package-product {
+      border-radius: 6px;
+      padding: 18px 16px;
+      background: #f5f5f5;
+    }
+
+    .package-title {
+      margin: 0 0 14px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .product-row {
+      display: grid;
+      grid-template-columns: 100px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .product-image {
+      display: block;
+      width: 100px;
+      height: 100px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #f0f0f0;
+    }
+
+    .product-name {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .product-subline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-bottom: 4px;
+      color: #777;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .product-size,
+    .product-price {
+      margin: 0;
+      color: #777;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .tracking-panel {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 18px 16px 20px;
+      background: #fff;
+    }
+
+    .tracking-panel h3 {
+      margin: 0 0 16px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .tracking-meta {
+      display: grid;
+      grid-template-columns: 258px 210px 1fr;
+      gap: 36px;
+      margin-bottom: 18px;
+      color: #666;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .timeline {
+      position: relative;
+      margin: 0;
+      padding: 0 0 0 24px;
+      list-style: none;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      top: 9px;
+      bottom: 12px;
+      left: 5px;
+      width: 2px;
+      background: #dedede;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-bottom: 17px;
+      color: #777;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .timeline-item:last-child {
+      padding-bottom: 6px;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: -24px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #d6d6d6;
+    }
+
+    .timeline-item.is-current::before {
+      background: var(--pink);
+    }
+
+    .timeline-time {
+      margin: 0 0 7px;
+      color: #333;
+      font-weight: 700;
+    }
+
+    .timeline-item.is-current .timeline-time {
+      color: var(--pink);
+    }
+
+    .timeline-copy {
+      margin: 0;
+    }
+
+    .timeline-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 4px 0 0 23px;
+      border: 0;
+      padding: 7px 0 0;
+      color: #777;
+      background: transparent;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .small-chevron {
+      position: relative;
+      width: 12px;
+      height: 12px;
+    }
+
+    .small-chevron::before {
+      content: "";
+      position: absolute;
+      top: 1px;
+      left: 2px;
+      width: 6px;
+      height: 6px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: rotate(45deg);
+    }
+
+    .timeline-toggle.is-expanded .small-chevron::before {
+      top: 5px;
+      transform: rotate(225deg);
+    }
+
+    .site-footer {
+      position: relative;
+      height: 268px;
+      overflow: hidden;
+      background: #fff var(--figma-page) center bottom / 1920px 1080px no-repeat;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 1450px) {
+      .orders {
+        width: calc(100% - 80px);
+      }
+
+      .order-meta {
+        grid-template-columns: minmax(360px, 1fr) 180px 120px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      .hero {
+        height: auto;
+        min-height: 0;
+        padding: 28px 20px 34px;
+        background: var(--hero);
+      }
+
+      .hero::before {
+        content: "";
+        display: block;
+        height: 220px;
+        margin: 14px -20px 24px;
+        background: url("assets/fanka-order-tracking/hero-model.png") center 12% / cover no-repeat;
+      }
+
+      .hero-brand-hit {
+        display: none;
+      }
+
+      .hero-mobile-brand {
+        display: block;
+        width: 112px;
+        height: auto;
+      }
+
+      .hero-controls {
+        position: static;
+        width: 100%;
+      }
+
+      .search-form {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .search-field input,
+      .track-button {
+        opacity: 1;
+        color: #222;
+        caret-color: auto;
+        background: #fff;
+      }
+
+      .search-field input {
+        border: 1px solid transparent;
+      }
+
+      .track-button {
+        color: #fff;
+        background: #000;
+      }
+
+      .form-error {
+        position: static;
+        margin-top: 8px;
+        white-space: normal;
+      }
+
+      .empty-state {
+        height: 320px;
+      }
+
+      .orders {
+        width: calc(100% - 32px);
+        margin: 28px auto 56px;
+      }
+
+      .order-summary {
+        min-height: 0;
+        padding: 16px;
+      }
+
+      .summary-top {
+        grid-template-columns: 20px 28px minmax(0, 1fr);
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .order-total {
+        grid-column: 3;
+        justify-self: start;
+        font-size: 15px;
+      }
+
+      .order-title {
+        font-size: 16px;
+      }
+
+      .order-meta {
+        grid-template-columns: 1fr;
+        gap: 7px;
+        padding-left: 58px;
+        font-size: 13px;
+      }
+
+      .order-details {
+        padding: 16px 0 0;
+      }
+
+      .product-row {
+        grid-template-columns: 82px minmax(0, 1fr);
+      }
+
+      .product-image {
+        width: 82px;
+        height: 82px;
+      }
+
+      .tracking-meta {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .site-footer {
+        height: auto;
+        padding: 42px 24px 48px;
+        background:
+          radial-gradient(circle, #f0f0f0 0 1px, transparent 1px) 0 0 / 9px 9px,
+          #fff;
+      }
+
+      .footer-content {
+        position: static;
+        width: auto;
+        height: auto;
+        margin: 0;
+        overflow: visible;
+        clip: auto;
+        white-space: normal;
+      }
+
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+
+      .footer-logo {
+        width: 96px;
+        height: auto;
+      }
+
+      .footer-column h2,
+      .footer-email h2 {
+        margin: 0 0 18px;
+        color: #3c3c3c;
+        font-size: 32px;
+        font-weight: 400;
+        line-height: 1;
+      }
+
+      .footer-column a {
+        display: block;
+        width: fit-content;
+        margin-bottom: 12px;
+        color: #555;
+        font-size: 15px;
+        text-decoration: none;
+      }
+
+      .footer-static-input {
+        display: grid;
+        grid-template-columns: 1fr 48px;
+        width: min(330px, 100%);
+        height: 64px;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 36px;
+        color: #9a9a9a;
+        background: #fff;
+      }
+
+      .footer-static-input span {
+        padding-left: 28px;
+        font-size: 15px;
+      }
+
+      .footer-arrow {
+        display: flex;
+        width: 46px;
+        height: 46px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: #fff;
+        background: #000;
+        font-size: 26px;
+        line-height: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <a class="hero-brand-hit" href="#" aria-label="Fanka home"></a>
+    <img class="hero-mobile-brand" src="assets/fanka-order-tracking/brand-wordmark.png" alt="Fanka">
+    <section class="hero-controls" aria-labelledby="tracking-title">
+      <h1 id="tracking-title" class="sr-only">Order Tracking</h1>
+      <form id="trackingForm" class="search-form" novalidate>
+        <div class="search-field">
+          <label class="sr-only" for="trackingInput">Email or order number</label>
+          <input id="trackingInput" name="trackingInput" type="text" value="songrenyu@gmail.com" autocomplete="email" aria-describedby="trackingError">
+          <div id="trackingError" class="form-error">Please enter your email address or order number.</div>
+        </div>
+        <button class="track-button" type="submit">Track Order</button>
+      </form>
+    </section>
+  </header>
+
+  <main class="results-shell">
+    <section id="emptyState" class="empty-state" aria-live="polite">
+      <div class="empty-icon" aria-hidden="true"></div>
+      <div class="empty-shadow" aria-hidden="true"></div>
+      <p>No query information available</p>
+    </section>
+
+    <section id="resultsState" class="orders" hidden aria-live="polite"></section>
+  </main>
+
+  <footer class="site-footer" aria-label="Fanka footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <img class="footer-logo" src="assets/fanka-order-tracking/footer-logo.png" alt="Fanka">
+        <nav class="footer-column" aria-label="About us">
+          <h2>About us</h2>
+          <a href="#">Our Story</a>
+          <a href="#">Fabricnology</a>
+          <a href="#">Reviews</a>
+          <a href="#">Affiliate Program</a>
+          <a href="#">Refer A Friend</a>
+        </nav>
+        <nav class="footer-column" aria-label="Help">
+          <h2>Help</h2>
+          <a href="#">Size Guide</a>
+          <a href="#">Shipping</a>
+          <a href="#">Return &amp; Exchanges</a>
+          <a href="#">Track My Order</a>
+          <a href="#">Press Inquiries</a>
+        </nav>
+        <nav class="footer-column" aria-label="Policy">
+          <h2>Policy</h2>
+          <a href="#">Terms &amp; Conditions</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Cookie Policy</a>
+          <a href="#">Third-Party Services</a>
+          <a href="#">Klarna</a>
+        </nav>
+        <section class="footer-email" aria-label="Join our email list">
+          <h2>Join our email list</h2>
+          <div class="footer-static-input" aria-hidden="true">
+            <span>Email address</span>
+            <span class="footer-arrow">&rarr;</span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const emptyState = document.getElementById("emptyState");
+    const resultsState = document.getElementById("resultsState");
+    const trackingForm = document.getElementById("trackingForm");
+    const trackingInput = document.getElementById("trackingInput");
+    const trackingError = document.getElementById("trackingError");
+
+    const orders = Array.from({ length: 4 }, (_, index) => ({
+      id: `order-${index + 1}`,
+      index: index + 1,
+      orderTitle: "Order Number : 528894",
+      total: "USD 14.99",
+      address: "Shipping Address: P.O. Box 373, Ellisville, MS 39437-0373, United States",
+      shipTo: "Ship To:Sandra Shows",
+      email: "Email:3232"
+    }));
+
+    const packages = [
+      {
+        id: "package-1",
+        title: "Package 1",
+        product: "Fanka On-the-Go Headband Fanka On-the-Go Headband Fanka On-the-Go Headband",
+        sku: "SKUAchairba2402050003004",
+        quantity: "x1",
+        size: "SIZE",
+        price: "USD 14.99",
+        expanded: false
+      },
+      {
+        id: "package-2",
+        title: "Package 2",
+        product: "Fanka On-the-Go Headband Fanka On-the-Go Headband Fanka On-the-Go Headband",
+        sku: "SKUAchairba2402050003004",
+        quantity: "x1",
+        size: "SIZE",
+        price: "USD 14.99",
+        expanded: true
+      }
+    ];
+
+    const timelineEvents = [
+      {
+        time: "Delivery  2026-06-10 23:49:22",
+        copy: "TMS_FD - Allentown - Door/Yard. Please contact the sender.",
+        current: true
+      },
+      {
+        time: "2026-06-10 17:48:53",
+        copy: "A new delivery time has been agreed upon with the recipient (2026-06-11 18:00:00), pending further delivery."
+      },
+      {
+        time: "2026-06-10 17:48:53",
+        copy: "Carteret"
+      },
+      {
+        time: "2026-06-10 17:48:53",
+        copy: "TMS_FD - Allentown - Door/Yard. Please contact the sender."
+      },
+      {
+        time: "2026-06-10 17:48:53",
+        copy: "TMS_FD - Allentown - Door/Yard. Please contact the sender."
+      },
+      {
+        time: "2026-06-10 17:48:53",
+        copy: "TMS_FD - Allentown - Door/Yard. Please contact the sender."
+      }
+    ];
+
+    const openOrders = new Set();
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function showResults() {
+      trackingError.classList.remove("is-visible");
+      emptyState.hidden = true;
+      resultsState.hidden = false;
+      openOrders.clear();
+      renderOrders();
+    }
+
+    function renderOrders() {
+      resultsState.innerHTML = orders.map((order) => {
+        const isOpen = openOrders.has(order.id);
+        return `
+          <article class="order-card${isOpen ? " is-open" : ""}" data-order-id="${order.id}">
+            <button class="order-summary" type="button" aria-expanded="${isOpen}" aria-controls="${order.id}-details" onclick="toggleOrder('${order.id}')">
+              <div class="summary-top">
+                <span class="chevron" aria-hidden="true"></span>
+                <span class="badge">${order.index}</span>
+                <span class="order-title">${escapeHtml(order.orderTitle)}</span>
+                <span class="order-total">Order Total: ${escapeHtml(order.total)}</span>
+              </div>
+              <div class="order-meta">
+                <span>${escapeHtml(order.address)}</span>
+                <span>${escapeHtml(order.shipTo)}</span>
+                <span>${escapeHtml(order.email)}</span>
+              </div>
+            </button>
+            <div id="${order.id}-details" class="order-details">
+              ${isOpen ? renderPackages() : ""}
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderPackages() {
+      return packages.map((pkg) => `
+        <section class="package-block" data-package-id="${pkg.id}">
+          <div class="package-product">
+            <h2 class="package-title">${escapeHtml(pkg.title)}</h2>
+            <div class="product-row">
+              <img class="product-image" src="assets/fanka-order-tracking/product-thumb.png" alt="">
+              <div>
+                <p class="product-name">${escapeHtml(pkg.product)}</p>
+                <div class="product-subline">
+                  <span>${escapeHtml(pkg.sku)}</span>
+                  <span>${escapeHtml(pkg.quantity)}</span>
+                </div>
+                <p class="product-size">${escapeHtml(pkg.size)}</p>
+                <p class="product-price">${escapeHtml(pkg.price)}</p>
+              </div>
+            </div>
+          </div>
+          <div class="tracking-panel">
+            <h3>Tracking Information</h3>
+            <div class="tracking-meta">
+              <span>Delivery tracking number: YT2640821437238212</span>
+              <span>Delivery channel: GoodCang</span>
+              <span>Logistics provider: GoodCang</span>
+            </div>
+            ${renderTimeline(pkg)}
+          </div>
+        </section>
+      `).join("");
+    }
+
+    function renderTimeline(pkg) {
+      const visibleEvents = pkg.expanded ? timelineEvents : timelineEvents.slice(0, 3);
+      const buttonLabel = pkg.expanded ? "Collapse all" : "Expand all";
+      return `
+        <ol class="timeline">
+          ${visibleEvents.map((event) => `
+            <li class="timeline-item${event.current ? " is-current" : ""}">
+              <p class="timeline-time">${escapeHtml(event.time)}</p>
+              <p class="timeline-copy">${escapeHtml(event.copy)}</p>
+            </li>
+          `).join("")}
+        </ol>
+        <button class="timeline-toggle${pkg.expanded ? " is-expanded" : ""}" type="button" onclick="toggleTimeline('${pkg.id}')">
+          <span>${buttonLabel}</span>
+          <span class="small-chevron" aria-hidden="true"></span>
+        </button>
+      `;
+    }
+
+    function toggleOrder(orderId) {
+      if (openOrders.has(orderId)) {
+        openOrders.delete(orderId);
+      } else {
+        openOrders.add(orderId);
+      }
+      renderOrders();
+    }
+
+    function toggleTimeline(packageId) {
+      const pkg = packages.find((item) => item.id === packageId);
+      if (!pkg) {
+        return;
+      }
+      pkg.expanded = !pkg.expanded;
+      renderOrders();
+    }
+
+    trackingForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!trackingInput.value.trim()) {
+        trackingError.classList.add("is-visible");
+        emptyState.hidden = false;
+        resultsState.hidden = true;
+        return;
+      }
+      showResults();
+    });
+  </script>
+</body>
+</html>
